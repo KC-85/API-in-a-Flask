@@ -1,6 +1,20 @@
 # API in a Flask
 Personal project - Wanted to see if i could build a RestAPI using Flask (Python)
 
+## Auth defaults and password policy
+
+- Seeded users now read passwords from environment variables:
+	- `SEED_ADMIN_PASSWORD`
+	- `SEED_USER_PASSWORD`
+- `setup.sh` bootstraps these into a local `.env` file for development.
+- New registrations enforce a password policy:
+	- minimum 8 characters
+	- at least one letter
+	- at least one number
+	- no spaces
+- `/auth/login` now returns both `access_token` and `refresh_token`.
+- Use `POST /auth/refresh` with a refresh token to get a new access token.
+
 ## set_env.sh (helper)
 
 This repo includes a small helper script, [set_env.sh](set_env.sh), which fetches a JWT from the local running API and helps you export it or save it to a local `.env` file.

@@ -4,6 +4,10 @@ import os
 # Add project root to PYTHONPATH
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
+# Ensure deterministic seeded credentials for test runs
+os.environ.setdefault("SEED_ADMIN_PASSWORD", "adminpass")
+os.environ.setdefault("SEED_USER_PASSWORD", "johnpass")
+
 import redis
 import pytest
 from app import create_app  # Now it should work!

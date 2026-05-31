@@ -1,10 +1,22 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity
 from app.models import resources
 from utils.security_utils import SecurityEnhancements  # ✅ Import security module
 from werkzeug.security import generate_password_hash, check_password_hash
 
 auth_bp = Blueprint("auth", __name__)
+
+
+def validate_password_policy(password: str) -> None:
+    """Enforce basic password policy for registered users."""
+    if len(password) < 8:
+        raise ValueError("Password must be at least 8 characters long")
+    if any(char.isspace() for char in password):
+        raise ValueError("Password must not contain spaces")
+    if not any(char.isalpha() for char in password):
+        raise ValueError("Password must contain at least one letter")
+    if not any(char.isdigit() for char in password):
+        raise ValueError("Password must contain at least one number")
 
 @auth_bp.route('/register', methods=['POST'])
 def register():
@@ -18,6 +30,7 @@ def register():
     try:
         username = SecurityEnhancements.validate_input(username)
         password = SecurityEnhancements.validate_input(password)
+        validate_password_policy(password)
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
@@ -57,4 +70,14 @@ def login():
         return jsonify({"error": "Invalid credentials"}), 401
 
     access_token = create_access_token(identity=username)
-    return jsonify(access_token=access_token)
+    refresh_token = create_refresh_token(identity=username)
+    return jsonify(access_token=access_token, refresh_token=refresh_token)
+
+
+@auth_bp.route('/refresh', methods=['POST'])
+@jwt_required(refresh=True)
+def refresh():
+    """Creates a new access token using a refresh token."""
+    current_user = get_jwt_identity()
+    new_access_token = create_access_token(identity=current_user)
+    return jsonify(access_token=new_access_token), 200
