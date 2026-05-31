@@ -16,3 +16,21 @@ def test_invalid_login(client):
     response = client.post("/auth/login", json={"username": "nonexistent", "password": "wrongpass"})
     assert response.status_code == 401
     assert response.json == {"error": "Invalid credentials"}
+
+
+def test_login_wrong_password(client):
+    """ Test login fails when password is incorrect """
+    client.post("/auth/register", json={"username": "testuser2", "password": "correctpass"})
+    response = client.post("/auth/login", json={"username": "testuser2", "password": "wrongpass"})
+    assert response.status_code == 401
+    assert response.json == {"error": "Invalid credentials"}
+
+
+def test_login_seed_admin_password(client):
+    """ Test seeded admin user requires correct password """
+    bad_response = client.post("/auth/login", json={"username": "admin", "password": "ignored"})
+    assert bad_response.status_code == 401
+
+    good_response = client.post("/auth/login", json={"username": "admin", "password": "adminpass"})
+    assert good_response.status_code == 200
+    assert "access_token" in good_response.json
