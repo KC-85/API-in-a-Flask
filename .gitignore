@@ -5,3 +5,6 @@ echo "__pycache__/
 .env
 venv/
 .gitpod/" > .gitignore
+.pytest
+.pytest_cache/
+__pycache__/
